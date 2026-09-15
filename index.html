@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>診所門診線上預約</title>
+  <style>
+    :root {
+      --primary-color: #214f4b;
+      --accent-color: #c59b6d;
+      --bg-color: #f9f8f4;
+      --card-bg: #ffffff;
+      --text-color: #333333;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+    .container {
+      background: var(--card-bg);
+      max-width: 520px;
+      width: 100%;
+      padding: 32px 28px;
+      border-radius: 14px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.07);
+    }
+    h1 {
+      text-align: center;
+      color: var(--primary-color);
+      font-size: 1.55rem;
+      margin: 0 0 6px 0;
+      font-weight: 700;
+    }
+    p.subtitle {
+      text-align: center;
+      color: #777;
+      font-size: 0.88rem;
+      margin: 0 0 24px 0;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: var(--primary-color);
+      font-size: 0.92rem;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid #dcdad5;
+      border-radius: 7px;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+      outline: none;
+      background-color: #fff;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(33, 79, 75, 0.12);
+    }
+    option:disabled {
+      color: #aaa !important;
+      background-color: #f2f2f2;
+      text-decoration: line-through;
+    }
+    .helper-text {
+      font-size: 0.82rem;
+      color: #888;
+      margin-top: 5px;
+      line-height: 1.4;
+    }
+    .btn-submit {
+      background-color: var(--primary-color);
+      color: #ffffff;
+      border: none;
+      padding: 13px;
+      width: 100%;
+      border-radius: 7px;
+      font-size: 1.02rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: background-color 0.2s, opacity 0.2s;
+    }
+    .btn-submit:hover:not(:disabled) {
+      background-color: #1a3f3c;
+    }
+    .btn-submit:disabled {
+      background-color: #8fa5a3;
+      cursor: not-allowed;
+    }
+    .notice {
+      margin-top: 20px;
+      padding: 12px 14px;
+      background: #f4f6f5;
+      border-left: 4px solid var(--primary-color);
+      font-size: 0.82rem;
+      color: #555;
+      line-height: 1.6;
+      border-radius: 0 6px 6px 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>門診預約掛號</h1>
+  <p class="subtitle">本診所採預約制，已額滿時段將自動反灰</p>
+
+  <form id="bookingForm">
+    <div class="form-group">
+      <label for="doctor">看診醫師 *</label>
+      <select id="doctor" required>
+        <option value="">-- 請先選擇看診醫師 --</option>
+        <option value="劉宗豪 醫師">劉宗豪 醫師 (週三午/晚、週五早/午/晚)</option>
+        <option value="吳國柱 醫師">吳國柱 醫師 (週一午、週二晚、週三午、週四晚、週五午)</option>
+        <option value="劉承皓 醫師">劉承皓 醫師 (週二午/晚)</option>
+        <option value="特約門診">特約門診</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="bookDate">預約日期 (限兩個月內) *</label>
+      <input type="date" id="bookDate" required>
+      <div class="helper-text" id="dateHint">僅開放當日起兩個月內的門診預約</div>
+    </div>
+
+    <div class="form-group">
+      <label for="timeSlot">預約時段 (每格 30 分鐘) *</label>
+      <select id="timeSlot" required disabled>
+        <option value="">-- 請先選擇醫師與日期 --</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="patientName">病患姓名 *</label>
+      <input type="text" id="patientName" placeholder="請輸入姓名" required>
+    </div>
+
+    <div class="form-group">
+      <label for="patientPhone">聯絡電話 *</label>
+      <input type="tel" id="patientPhone" placeholder="例如：0912345678" required>
+    </div>
+
+    <div class="form-group">
+      <label for="notes">備註說明（選填）</label>
+      <textarea id="notes" rows="2" placeholder="初診/複診、或主要想諮詢調理之項目"></textarea>
+    </div>
+
+    <button type="submit" class="btn-submit" id="submitBtn">確認預約並送出</button>
+  </form>
+
+  <div class="notice">
+    ※ 已被預約之時段將顯示「(已額滿)」並反灰劃線不可選。<br>
+    ※ 實際看診排程請以現場叫號與官方 LINE 確認通知為主。
+  </div>
+</div>
+
+<script>
+  // 診所專屬 API 網址
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzfmrYdU2KUuZeKEjRJt8WX-iWnM83wgEg7wXa7MhTWYRugx44cyk6gZbPb2APRVQh9/exec";
+
+  const dateInput = document.getElementById('bookDate');
+  const doctorSelect = document.getElementById('doctor');
+  const timeSlotSelect = document.getElementById('timeSlot');
+  const dateHint = document.getElementById('dateHint');
+
+  // 計算開放範圍：即日起至兩個月後
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const minDateStr = `${yyyy}-${mm}-${dd}`;
+
+  const maxDate = new Date();
+  maxDate.setMonth(maxDate.getMonth() + 2);
+  const maxY = maxDate.getFullYear();
+  const maxM = String(maxDate.getMonth() + 1).padStart(2, '0');
+  const maxD = String(maxDate.getDate()).padStart(2, '0');
+  const maxDateStr = `${maxY}-${maxM}-${maxD}`;
+
+  dateInput.min = minDateStr;
+  dateInput.max = maxDateStr;
+
+  const SLOT_DETAILS = {
+    "morning": {
+      label: "早診",
+      slots: ["10:00 - 10:30", "10:30 - 11:00", "11:00 - 11:30", "11:30 - 12:00", "12:00 - 12:30"]
+    },
+    "afternoon": {
+      label: "午診",
+      slots: ["14:00 - 14:30", "14:30 - 15:00", "15:00 - 15:30", "15:30 - 16:00", "16:00 - 16:30", "16:30 - 17:00", "17:00 - 17:30"]
+    },
+    "evening": {
+      label: "晚診",
+      slots: ["18:00 - 18:30", "18:30 - 19:00", "19:00 - 19:30", "19:30 - 20:00", "20:00 - 20:30", "20:30 - 21:00", "21:00 - 21:30"]
+    }
+  };
+
+  const DOCTOR_SCHEDULES = {
+    "劉宗豪": {
+      3: ["afternoon", "evening"],
+      5: ["morning", "afternoon", "evening"]
+    },
+    "吳國柱": {
+      1: ["afternoon"],
+      2: ["evening"],
+      3: ["afternoon"],
+      4: ["evening"],
+      5: ["afternoon"]
+    },
+    "劉承皓": {
+      2: ["afternoon", "evening"]
+    },
+    "特約門": {
+      1: ["morning", "evening"],
+      2: ["morning"],
+      3: ["morning"],
+      4: ["morning", "afternoon"],
+      6: ["morning", "afternoon"]
+    }
+  };
+
+  // 接收後端 JSONP 回傳的名額資料，並反灰不可選
+  window.handleBookedSlots = function(data) {
+    if (data && data.bookedSlots && data.bookedSlots.length > 0) {
+      data.bookedSlots.forEach(slotTime => {
+        const optId = `slot-${slotTime.replace(/[: -]/g, '')}`;
+        const opt = document.getElementById(optId);
+        if (opt) {
+          opt.textContent = opt.textContent.replace(" (已額滿)", "") + " (已額滿)";
+          opt.disabled = true; // 反灰並鎖定
+        }
+      });
+      dateHint.innerText = "✅ 該日有開診，已額滿時段已為您反灰標示。";
+      dateHint.style.color = "#214f4b";
+    } else {
+      dateHint.innerText = "✅ 該日有開診，目前所有時段皆可預約。";
+      dateHint.style.color = "#214f4b";
+    }
+  };
+
+  function updateSlotOptions() {
+    const doctorRaw = doctorSelect.value;
+    const dateVal = dateInput.value;
+
+    timeSlotSelect.innerHTML = '<option value="">-- 請選擇時段 --</option>';
+    timeSlotSelect.disabled = true;
+    dateHint.style.color = "#888";
+    dateHint.innerText = `僅開放 ${minDateStr} 至 ${maxDateStr} (兩個月內) 之預約`;
+
+    if (!doctorRaw || !dateVal) return;
+
+    if (dateVal < minDateStr || dateVal > maxDateStr) {
+      dateHint.innerText = `❌ 預約日期僅限兩個月內，請重新挑選。`;
+      dateHint.style.color = "#d93025";
+      return;
+    }
+
+    const parts = dateVal.split('-');
+    const pickedDate = new Date(parts[0], parts[1] - 1, parts[2]);
+    const dayOfWeek = pickedDate.getDay();
+
+    if (dayOfWeek === 0) {
+      dateHint.innerText = "❌ 診所每週日全天休診，請選擇其他就診日期。";
+      dateHint.style.color = "#d93025";
+      return;
+    }
+
+    const docKey = doctorRaw.substring(0, 3);
+    const doctorRules = DOCTOR_SCHEDULES[docKey];
+    const availableShifts = doctorRules ? doctorRules[dayOfWeek] : null;
+
+    if (!availableShifts || availableShifts.length === 0) {
+      const dayNames = ["日", "一", "二", "三", "四", "五", "六"];
+      dateHint.innerText = `❌ ${doctorRaw} 於週${dayNames[dayOfWeek]}無門診，請挑選其他日期。`;
+      dateHint.style.color = "#d93025";
+      return;
+    }
+
+    // 立即建立完整的 30 分鐘選單
+    dateHint.innerText = "⏳ 正在同步診所名額狀態...";
+    dateHint.style.color = "#888";
+    timeSlotSelect.disabled = false;
+    timeSlotSelect.innerHTML = '<option value="">-- 請選擇時段 --</option>';
+
+    availableShifts.forEach(shiftKey => {
+      const group = document.createElement("optgroup");
+      group.label = `【${SLOT_DETAILS[shiftKey].label}】`;
+
+      SLOT_DETAILS[shiftKey].slots.forEach(slotTime => {
+        const opt = document.createElement("option");
+        opt.value = slotTime;
+        opt.textContent = `${SLOT_DETAILS[shiftKey].label} ${slotTime}`;
+        opt.id = `slot-${slotTime.replace(/[: -]/g, '')}`;
+        group.appendChild(opt);
+      });
+
+      timeSlotSelect.appendChild(group);
+    });
+
+    // 透過 JSONP 穿透查詢日曆行程（不受瀏覽器 CORS 阻擋）
+    const oldScript = document.getElementById('jsonp-check-slot');
+    if (oldScript) oldScript.remove();
+
+    const script = document.createElement('script');
+    script.id = 'jsonp-check-slot';
+    script.src = `${GAS_API_URL}?doctor=${encodeURIComponent(doctorRaw)}&date=${encodeURIComponent(dateVal)}&callback=handleBookedSlots`;
+    document.body.appendChild(script);
+  }
+
+  doctorSelect.addEventListener('change', updateSlotOptions);
+  dateInput.addEventListener('change', updateSlotOptions);
+
+  // 表單送出檢查
+  document.getElementById('bookingForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const doctor = doctorSelect.value;
+    const bookDate = dateInput.value;
+    const timeSlot = timeSlotSelect.value;
+    const patientName = document.getElementById('patientName').value.trim();
+    const patientPhone = document.getElementById('patientPhone').value.trim();
+    const notes = document.getElementById('notes').value.trim();
+
+    if (timeSlotSelect.disabled || !timeSlot) {
+      alert("請選擇有效的門診時段！");
+      return;
+    }
+
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerText = "預約排程中，請稍候...";
+
+    const payload = {
+      doctor: doctor,
+      bookDate: bookDate,
+      timeSlot: timeSlot,
+      patientName: patientName,
+      patientPhone: patientPhone,
+      notes: notes
+    };
+
+    fetch(GAS_API_URL, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(result => {
+      if (result.status === "success") {
+        alert(`【預約成功】\n已收到 ${patientName} 貴賓的預約！\n看診醫師：${doctor}\n預約時段：${bookDate} ${timeSlot}\n診所日曆已同步記錄。`);
+        document.getElementById('bookingForm').reset();
+        updateSlotOptions();
+      } else if (result.status === "full") {
+        alert(`⚠️ 【預約未成功】\n\n${result.message}`);
+        updateSlotOptions();
+      } else {
+        alert("系統回報異常：" + result.message);
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert("連線驗證異常，請直接致電診所或透過官方 LINE 預約。");
+    })
+    .finally(() => {
+      submitBtn.disabled = false;
+      submitBtn.innerText = "確認預約並送出";
+    });
+  });
+</script>
+
+</body>
+</html>
