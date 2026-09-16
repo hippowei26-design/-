@@ -3,14 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>診所門診線上預約</title>
+  <title>恏微美學牙醫診所 - 門診線上預約</title>
   <style>
     :root {
-      --primary-color: #214f4b;
-      --accent-color: #c59b6d;
+      --primary-color: #275c53;
+      --accent-color: #c5a880;
       --bg-color: #f9f8f4;
       --card-bg: #ffffff;
       --text-color: #333333;
+      --line-green: #06c755;
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -68,7 +69,7 @@
     }
     input:focus, select:focus, textarea:focus {
       border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(33, 79, 75, 0.12);
+      box-shadow: 0 0 0 3px rgba(39, 92, 83, 0.12);
     }
     option:disabled {
       color: #aaa !important;
@@ -95,10 +96,10 @@
       transition: background-color 0.2s, opacity 0.2s;
     }
     .btn-submit:hover:not(:disabled) {
-      background-color: #1a3f3c;
+      background-color: #1a3f39;
     }
     .btn-submit:disabled {
-      background-color: #8fa5a3;
+      background-color: #8fa5a0;
       cursor: not-allowed;
     }
     .notice {
@@ -111,13 +112,108 @@
       line-height: 1.6;
       border-radius: 0 6px 6px 0;
     }
+
+    /* 預約成功彈窗 Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(3px);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .modal-box {
+      background: #ffffff;
+      border-radius: 16px;
+      max-width: 440px;
+      width: 100%;
+      padding: 28px 24px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      animation: popIn 0.25s ease-out;
+    }
+    @keyframes popIn {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .modal-icon {
+      width: 52px;
+      height: 52px;
+      line-height: 52px;
+      border-radius: 50%;
+      background: #eaf5f2;
+      color: var(--primary-color);
+      font-size: 26px;
+      margin: 0 auto 12px auto;
+    }
+    .modal-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin: 0 0 8px 0;
+    }
+    .modal-info {
+      font-size: 0.9rem;
+      color: #444;
+      background: #fbf9f6;
+      border: 1px solid #ede8e0;
+      padding: 14px 16px;
+      border-radius: 8px;
+      text-align: left;
+      line-height: 1.7;
+      margin: 14px 0 16px 0;
+    }
+    .modal-desc {
+      font-size: 0.86rem;
+      color: #666;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    .btn-line {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background-color: var(--line-green);
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 12px 20px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      transition: opacity 0.2s;
+    }
+    .btn-line:hover {
+      opacity: 0.92;
+    }
+    .btn-close {
+      background: transparent;
+      border: 1px solid #dcdad5;
+      color: #777;
+      padding: 9px 18px;
+      font-size: 0.88rem;
+      border-radius: 7px;
+      cursor: pointer;
+      width: 100%;
+    }
+    .btn-close:hover {
+      background: #f5f5f5;
+    }
   </style>
 </head>
 <body>
 
 <div class="container">
   <h1>門診預約掛號</h1>
-  <p class="subtitle">本診所採預約制，已額滿時段將自動反灰</p>
+  <p class="subtitle">本診所採預約制，已額滿與國定放假日將自動鎖定</p>
 
   <form id="bookingForm">
     <div class="form-group">
@@ -127,7 +223,7 @@
         <option value="劉宗豪 醫師">劉宗豪 醫師 (週三午/晚、週五早/午/晚)</option>
         <option value="吳國柱 醫師">吳國柱 醫師 (週一午、週二晚、週三午、週四晚、週五午)</option>
         <option value="劉承皓 醫師">劉承皓 醫師 (週二午/晚)</option>
-        <option value="特約門診">特約門診</option>
+        <option value="特約門診" disabled style="color: #999; background-color: #f5f5f5;">特約門診 (請直接撥打電話or加官方LINE，不開放線上預約)</option>
       </select>
     </div>
 
@@ -163,13 +259,31 @@
   </form>
 
   <div class="notice">
-    ※ 已被預約之時段將顯示「(已額滿)」並反灰劃線不可選。<br>
-    ※ 實際看診排程請以現場叫號與官方 LINE 確認通知為主。
+    ※ 特約門診時段不開放線上登記，請直接撥打診所專線 (02) 8258-8028 或透過官方 LINE 預約[cite: 1]。<br>
+    ※ 國定假日與政府公告放假日全天休診，不開放預約。<br>
+    ※ 網站預約為初步預約，會有專人與您聯繫再次確認預約時段。
+  </div>
+</div>
+
+<!-- 預約成功 + LINE 導流彈窗 -->
+<div class="modal-overlay" id="successModal">
+  <div class="modal-box">
+    <div class="modal-icon">✓</div>
+    <div class="modal-title">初步預約已送出</div>
+    <div class="modal-info" id="modalBookingDetails"></div>
+    <div class="modal-desc">
+      網站預約為初步登記，後續將有專人與您電話聯繫確認。<br>
+      <strong>建議加入官方 LINE，可即時掌握排程進度與就診提醒！</strong>
+    </div>
+    
+    <a href="https://line.me/R/ti/p/@haowei" target="_blank" class="btn-line">
+      <span>💬 加入官方 LINE 掌握預約</span>
+    </a>
+    <button type="button" class="btn-close" onclick="closeModal()">關閉視窗</button>
   </div>
 </div>
 
 <script>
-  // 診所專屬 API 網址
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzfmrYdU2KUuZeKEjRJt8WX-iWnM83wgEg7wXa7MhTWYRugx44cyk6gZbPb2APRVQh9/exec";
 
   const dateInput = document.getElementById('bookDate');
@@ -177,7 +291,6 @@
   const timeSlotSelect = document.getElementById('timeSlot');
   const dateHint = document.getElementById('dateHint');
 
-  // 計算開放範圍：即日起至兩個月後
   const now = new Date();
   const yyyy = now.getFullYear();
   const mm = String(now.getMonth() + 1).padStart(2, '0');
@@ -193,6 +306,25 @@
 
   dateInput.min = minDateStr;
   dateInput.max = maxDateStr;
+
+  // 行政院公佈放假日 (依據提供的日曆粉紅色放假日更新)
+  const NATIONAL_HOLIDAYS = {
+    // 2026年 9月~12月
+    "2026-09-25": "中秋節放假日",
+    "2026-09-28": "教師節放假日",
+    "2026-10-09": "國慶連假調整放假日",
+    "2026-10-10": "國慶日",
+    "2026-10-26": "臺灣光復節補假",
+    "2026-12-25": "行憲紀念日",
+    // 2027年常見公休日
+    "2027-01-01": "元旦開國紀念日",
+    "2027-02-05": "農曆除夕前一日",
+    "2027-02-06": "除夕",
+    "2027-02-07": "春節",
+    "2027-02-08": "春節初二",
+    "2027-02-09": "春節初三",
+    "2027-02-28": "和平紀念日"
+  };
 
   const SLOT_DETAILS = {
     "morning": {
@@ -223,17 +355,9 @@
     },
     "劉承皓": {
       2: ["afternoon", "evening"]
-    },
-    "特約門": {
-      1: ["morning", "evening"],
-      2: ["morning"],
-      3: ["morning"],
-      4: ["morning", "afternoon"],
-      6: ["morning", "afternoon"]
     }
   };
 
-  // 接收後端 JSONP 回傳的名額資料，並反灰不可選
   window.handleBookedSlots = function(data) {
     if (data && data.bookedSlots && data.bookedSlots.length > 0) {
       data.bookedSlots.forEach(slotTime => {
@@ -241,14 +365,14 @@
         const opt = document.getElementById(optId);
         if (opt) {
           opt.textContent = opt.textContent.replace(" (已額滿)", "") + " (已額滿)";
-          opt.disabled = true; // 反灰並鎖定
+          opt.disabled = true;
         }
       });
       dateHint.innerText = "✅ 該日有開診，已額滿時段已為您反灰標示。";
-      dateHint.style.color = "#214f4b";
+      dateHint.style.color = "#275c53";
     } else {
       dateHint.innerText = "✅ 該日有開診，目前所有時段皆可預約。";
-      dateHint.style.color = "#214f4b";
+      dateHint.style.color = "#275c53";
     }
   };
 
@@ -261,8 +385,24 @@
     dateHint.style.color = "#888";
     dateHint.innerText = `僅開放 ${minDateStr} 至 ${maxDateStr} (兩個月內) 之預約`;
 
-    if (!doctorRaw || !dateVal) return;
+    if (!doctorRaw) return;
 
+    if (doctorRaw.indexOf("特約") !== -1) {
+      dateHint.innerText = "⚠️ 特約診時段請直接撥打電話 (02) 8258-8028 或加官方 LINE 預約，不開放線上預約[cite: 1]。";
+      dateHint.style.color = "#d93025";
+      return;
+    }
+
+    if (!dateVal) return;
+
+    // 1. 行政院公告放假日檢查鎖定 (含 9/28 教師節)
+    if (NATIONAL_HOLIDAYS[dateVal]) {
+      dateHint.innerText = `❌ 休診提醒：${dateVal} 為政府公告【${NATIONAL_HOLIDAYS[dateVal]}】全天休診，不開放預約。`;
+      dateHint.style.color = "#d93025";
+      return;
+    }
+
+    // 2. 兩個月範圍檢查
     if (dateVal < minDateStr || dateVal > maxDateStr) {
       dateHint.innerText = `❌ 預約日期僅限兩個月內，請重新挑選。`;
       dateHint.style.color = "#d93025";
@@ -273,6 +413,7 @@
     const pickedDate = new Date(parts[0], parts[1] - 1, parts[2]);
     const dayOfWeek = pickedDate.getDay();
 
+    // 3. 週日固定休診
     if (dayOfWeek === 0) {
       dateHint.innerText = "❌ 診所每週日全天休診，請選擇其他就診日期。";
       dateHint.style.color = "#d93025";
@@ -290,7 +431,6 @@
       return;
     }
 
-    // 立即建立完整的 30 分鐘選單
     dateHint.innerText = "⏳ 正在同步診所名額狀態...";
     dateHint.style.color = "#888";
     timeSlotSelect.disabled = false;
@@ -311,7 +451,6 @@
       timeSlotSelect.appendChild(group);
     });
 
-    // 透過 JSONP 穿透查詢日曆行程（不受瀏覽器 CORS 阻擋）
     const oldScript = document.getElementById('jsonp-check-slot');
     if (oldScript) oldScript.remove();
 
@@ -324,7 +463,10 @@
   doctorSelect.addEventListener('change', updateSlotOptions);
   dateInput.addEventListener('change', updateSlotOptions);
 
-  // 表單送出檢查
+  function closeModal() {
+    document.getElementById('successModal').style.display = 'none';
+  }
+
   document.getElementById('bookingForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
@@ -334,6 +476,16 @@
     const patientName = document.getElementById('patientName').value.trim();
     const patientPhone = document.getElementById('patientPhone').value.trim();
     const notes = document.getElementById('notes').value.trim();
+
+    if (NATIONAL_HOLIDAYS[bookDate]) {
+      alert(`該日為政府公告放假日【${NATIONAL_HOLIDAYS[bookDate]}】全日休診，不開放預約！`);
+      return;
+    }
+
+    if (doctor.indexOf("特約") !== -1) {
+      alert("特約門診請直接撥打電話 (02) 8258-8028 或加官方 LINE 預約！[cite: 1]");
+      return;
+    }
 
     if (timeSlotSelect.disabled || !timeSlot) {
       alert("請選擇有效的門診時段！");
@@ -360,7 +512,13 @@
     .then(res => res.json())
     .then(result => {
       if (result.status === "success") {
-        alert(`【預約成功】\n已收到 ${patientName} 貴賓的預約！\n看診醫師：${doctor}\n預約時段：${bookDate} ${timeSlot}\n診所日曆已同步記錄。`);
+        document.getElementById('modalBookingDetails').innerHTML = `
+          <strong>就診貴賓：</strong>${patientName}<br>
+          <strong>聯絡電話：</strong>${patientPhone}<br>
+          <strong>看診醫師：</strong>${doctor}<br>
+          <strong>預約時段：</strong>${bookDate} ${timeSlot}
+        `;
+        document.getElementById('successModal').style.display = 'flex';
         document.getElementById('bookingForm').reset();
         updateSlotOptions();
       } else if (result.status === "full") {
